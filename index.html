@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio — Now Developing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@700;800&family=Space+Mono:wght@400;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --room:#15100c;
+    --room-deep:#0f0a07;
+    --plum:#241c30;
+    --safelight:#c46a3d;
+    --safelight-glow:rgba(196,106,61,0.22);
+    --paper:#ede6d6;
+    --paper-dim:#c9c0ab;
+    --amber:#c98a3e;
+    --metal:#565c50;
+    --metal-light:#7a8172;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:#000;color:var(--paper);font-family:'Inter',sans-serif;overflow-x:hidden;}
+  button{font-family:inherit;}
+
+  .grain{
+    position:fixed;inset:0;pointer-events:none;z-index:50;opacity:0.035;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 20% 0%, var(--plum) 0%, transparent 60%),
+      radial-gradient(ellipse 700px 500px at 85% 15%, rgba(36,28,48,0.55) 0%, transparent 55%),
+      #000;
+    background-attachment:fixed;
+  }
+  .vignette{
+    position:fixed;inset:0;pointer-events:none;z-index:3;
+    background:radial-gradient(ellipse at 50% 40%, transparent 0%, transparent 48%, rgba(0,0,0,0.55) 100%);
+  }
+  .safelamp{
+    position:fixed;top:-160px;left:8%;
+    width:340px;height:340px;border-radius:50%;
+    background:radial-gradient(circle, var(--safelight-glow) 0%, transparent 62%);
+    opacity:0.55;pointer-events:none;z-index:3;
+    filter:blur(2px);
+  }
+  @keyframes pulse{0%,100%{opacity:0.35;}50%{opacity:0.65;}}
+
+  /* ---------- HOME VIEW ---------- */
+  #home{position:relative;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:space-between;overflow:hidden;padding:20px 0;}
+
+  header{position:relative;z-index:10;text-align:center;padding:0.5vh 24px 0;}
+  .eyebrow{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.18em;color:var(--safelight);text-transform:uppercase;}
+  .eyebrow::before{content:"● ";}
+  h1{font-family:'Big Shoulders Stencil Display',sans-serif;font-weight:700;font-size:clamp(28px,5vh,56px);letter-spacing:0.01em;margin:6px 0 4px;text-transform:none;}
+  .sub{font-family:'Space Mono',monospace;font-size:13px;color:var(--paper-dim);letter-spacing:0.04em;}
+
+  .stage-wrap{position:relative;z-index:10;max-width:1100px;margin:0.5vh auto 0;padding:0 24px;text-align:center;}
+  .stage-row{display:flex;align-items:center;justify-content:center;gap:20px;}
+  .stage-nav{
+    flex:0 0 auto;background:rgba(10,7,7,0.5);border:1px solid rgba(237,230,214,0.16);color:var(--paper);
+    width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:16px;
+    display:flex;align-items:center;justify-content:center;transition:border-color 0.3s ease, background 0.3s ease;
+  }
+  .stage-nav:hover{border-color:var(--safelight);background:var(--safelight-glow);}
+  .stage{
+    position:relative;width:min(72vw, calc(46vh * 4 / 3));aspect-ratio:4/3;flex:0 0 auto;border:1px solid rgba(237,230,214,0.14);border-radius:2px;
+    overflow:hidden;background:rgba(10,7,7,0.5);backdrop-filter:blur(3px);
+  }
+  .stage img{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:var(--room-deep);
+    opacity:0;transition:opacity 1s ease;
+  }
+  .stage img.active{opacity:1;}
+  .stage-caption{margin-top:14px;}
+  .cam-name{font-family:'Big Shoulders Stencil Display',sans-serif;font-weight:700;font-size:30px;letter-spacing:0.03em;text-transform:uppercase;}
+  .cam-meta{font-family:'Space Mono',monospace;font-size:13px;color:var(--metal-light);margin-top:4px;letter-spacing:0.03em;}
+
+  .develop-btn{
+    margin-top:12px;padding:9px 20px;background:none;border:1px solid var(--metal-light);
+    color:var(--paper);border-radius:2px;cursor:pointer;font-size:13px;letter-spacing:0.05em;
+    transition:border-color 0.3s ease, color 0.3s ease;
+  }
+  .develop-btn.ready{border-color:var(--safelight);color:var(--paper);}
+  .develop-btn.ready:hover{background:var(--safelight);}
+  .develop-btn:disabled{opacity:0.4;cursor:default;}
+  .not-ready-note{
+    font-family:'Space Mono',monospace;font-size:10px;color:var(--metal-light);
+    margin-top:6px;min-height:12px;opacity:0;transition:opacity 0.4s ease;letter-spacing:0.02em;
+  }
+  .not-ready-note.show{opacity:1;}
+
+  .shake{animation:shake 0.4s ease;}
+  @keyframes shake{20%{transform:translateX(-4px);}40%{transform:translateX(4px);}60%{transform:translateX(-3px);}80%{transform:translateX(3px);}100%{transform:translateX(0);}}
+
+  .roll {
+    position:relative;z-index:10;max-width:620px;margin:1vh auto 0;padding:0 24px;width:100%;
+  }
+  .instruction{text-align:center;font-family:'Space Mono',monospace;font-size:10px;color:var(--metal-light);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;}
+  .thumbs{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+  @media (max-width:760px){.thumbs{grid-template-columns:repeat(4,1fr);}}
+  @media (max-width:440px){.thumbs{grid-template-columns:repeat(3,1fr);}}
+
+  .thumb{
+    border:1px solid rgba(237,230,214,0.12);border-radius:2px;overflow:hidden;cursor:pointer;
+    background:rgba(10,7,7,0.5);position:relative;aspect-ratio:1/1;max-height:9vh;transition:border-color 0.3s ease;
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover;opacity:0.65;transition:opacity 0.3s ease, transform 0.4s ease;}
+  .thumb:hover img{opacity:1;transform:scale(1.04);}
+  .thumb.active{border-color:var(--safelight);}
+  .thumb.active img{opacity:1;}
+  .thumb-label{
+    font-family:'Space Mono',monospace;font-size:8px;text-align:center;color:var(--metal-light);
+    margin-top:3px;letter-spacing:0.02em;
+  }
+
+  footer{position:relative;z-index:10;text-align:center;padding:0 24px;font-family:'Space Mono',monospace;font-size:10px;color:var(--metal-light);letter-spacing:0.08em;}
+  footer span{color:var(--safelight);}
+
+  /* ---------- FILM REEL VIEW ---------- */
+  #reel{position:relative;min-height:100vh;display:none;}
+  #reel.visible{display:block;}
+  #home.hidden{display:none;}
+
+  .reel-header{position:relative;z-index:10;padding:36px 24px 4px;text-align:center;}
+  .back-btn{
+    position:absolute;left:24px;top:34px;background:none;border:1px solid var(--metal-light);
+    color:var(--paper);padding:8px 16px;border-radius:2px;cursor:pointer;font-size:12px;
+    font-family:'Space Mono',monospace;letter-spacing:0.04em;transition:border-color 0.3s ease;
+    z-index:20;
+  }
+  .back-btn:hover{border-color:var(--safelight);}
+  .reel-title{font-family:'Big Shoulders Stencil Display',sans-serif;font-weight:800;font-size:clamp(28px,4vw,44px);letter-spacing:0.02em;text-transform:uppercase;}
+  .reel-meta{font-family:'Space Mono',monospace;font-size:12px;color:var(--paper-dim);margin-top:8px;letter-spacing:0.04em;}
+
+  .filmstrip-outer{
+    position:relative;z-index:10;margin:44px 0;padding:22px 0;
+    background:var(--room-deep);border-top:1px solid rgba(237,230,214,0.1);border-bottom:1px solid rgba(237,230,214,0.1);
+  }
+  .sprockets{
+    position:absolute;top:0;bottom:0;width:100%;pointer-events:none;
+    background-image:radial-gradient(circle, var(--room) 3.5px, transparent 3.6px);
+    background-size:26px 26px;background-position:0 8px;
+  }
+  .sprockets.top{background-position:0 8px;}
+  .filmstrip{
+    display:flex;gap:4px;overflow-x:auto;padding:0 24px;scroll-snap-type:x proximity;
+    scrollbar-width:thin;scrollbar-color:var(--metal) var(--room-deep);
+  }
+  .frame{
+    flex:0 0 auto;scroll-snap-align:start;cursor:pointer;position:relative;
+  }
+  .frame img{
+    height:320px;width:auto;display:block;border:1px solid #000;filter:brightness(0.88);
+    transition:filter 0.3s ease, transform 0.3s ease;
+  }
+  @media (max-width:700px){.frame img{height:220px;}}
+  .frame:hover img{filter:brightness(1.05);transform:translateY(-3px);}
+  .frame-num{
+    position:absolute;bottom:4px;left:4px;font-family:'Space Mono',monospace;font-size:9px;
+    background:rgba(12,11,10,0.75);color:var(--amber);padding:2px 5px;letter-spacing:0.02em;
+  }
+
+  .reel-hint{text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--metal-light);letter-spacing:0.06em;padding-bottom:60px;}
+
+  /* ---------- LIGHTBOX ---------- */
+  #lightbox{
+    position:fixed;inset:0;background:rgba(9,8,7,0.96);z-index:100;display:none;
+    align-items:center;justify-content:center;flex-direction:column;
+  }
+  #lightbox.visible{display:flex;}
+  #lightbox img{max-width:88vw;max-height:78vh;object-fit:contain;border:1px solid rgba(237,230,214,0.15);}
+  .lb-meta{font-family:'Space Mono',monospace;font-size:12px;color:var(--paper-dim);margin-top:16px;letter-spacing:0.05em;}
+  .lb-close{
+    position:absolute;top:24px;right:28px;background:none;border:none;color:var(--paper);
+    font-size:22px;cursor:pointer;line-height:1;
+  }
+  .lb-nav{
+    position:absolute;top:50%;transform:translateY(-50%);background:none;border:none;
+    color:var(--paper);font-size:34px;cursor:pointer;padding:12px 18px;opacity:0.6;transition:opacity 0.2s ease;
+  }
+  .lb-nav:hover{opacity:1;}
+  .lb-prev{left:6px;}
+  .lb-next{right:6px;}
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="vignette"></div>
+<div class="safelamp"></div>
+
+<!-- ================= HOME ================= -->
+<section id="home">
+  <header>
+    <div class="eyebrow">now developing</div>
+    <h1>darkroom</h1>
+  </header>
+
+  <div class="stage-wrap">
+    <div class="stage-row">
+      <button class="stage-nav" id="prevCam" aria-label="Previous camera">&#10094;</button>
+      <div class="stage" id="stage"></div>
+      <button class="stage-nav" id="nextCam" aria-label="Next camera">&#10095;</button>
+    </div>
+    <div class="stage-caption">
+      <div class="cam-name" id="camName"></div>
+      <div class="cam-meta" id="camMeta"></div>
+    </div>
+    <button class="develop-btn" id="developBtn">develop this roll</button>
+    <div class="not-ready-note" id="notReadyNote"></div>
+  </div>
+
+  <div class="roll">
+    <div class="instruction">or choose a camera directly</div>
+    <div class="thumbs" id="thumbs"></div>
+  </div>
+
+  <footer>darkroom — a portfolio by <span>[your name]</span></footer>
+</section>
+
+<!-- ================= FILM REEL ================= -->
+<section id="reel">
+  <div class="reel-header">
+    <button class="back-btn" id="backBtn">&larr; back to studio</button>
+    <div class="reel-title">Ricoh Auto Half E</div>
+    <div class="reel-meta">roll 7_17_26 &middot; <span id="frameCount">0</span> frames &middot; scroll to browse, click to view</div>
+  </div>
+
+  <div class="filmstrip-outer">
+    <div class="sprockets top" style="top:0;height:14px;"></div>
+    <div class="filmstrip" id="filmstrip"></div>
+    <div class="sprockets" style="bottom:0;height:14px;top:auto;"></div>
+  </div>
+
+  <div class="reel-hint">use ← → after opening a frame to move through the roll</div>
+</section>
+
+<!-- ================= LIGHTBOX ================= -->
+<div id="lightbox">
+  <button class="lb-close" id="lbClose">&times;</button>
+  <button class="lb-nav lb-prev" id="lbPrev">&#10094;</button>
+  <img id="lbImg" src="" alt="">
+  <button class="lb-nav lb-next" id="lbNext">&#10095;</button>
+  <div class="lb-meta" id="lbMeta"></div>
+</div>
+
+<script>
+  // ---------- camera catalog (static — always renders, no network needed) ----------
+  const cameras = [
+    // TEMPLATE: replace these with your own cameras.
+    // slug   -> must match a file at assets/cameras/{slug}.png (transparent-background cutout)
+    //           and, once a roll exists, a folder at assets/rolls/{slug}/
+    // name   -> display name shown under the camera in the picker
+    // meta   -> small technical caption shown under the name (format, aperture, etc.)
+    { slug:'example', name:'Example Camera', meta:'replace this entry' },
+  ];
+  // each camera gets .rollData filled in lazily: undefined = not checked yet, null = no roll, object = ready
+  const camPath = c => `assets/cameras/${c.slug}.png`;
+
+  let currentRollFrames = [];
+
+  const stage = document.getElementById('stage');
+  const camName = document.getElementById('camName');
+  const camMeta = document.getElementById('camMeta');
+  const developBtn = document.getElementById('developBtn');
+  const notReadyNote = document.getElementById('notReadyNote');
+  const thumbsEl = document.getElementById('thumbs');
+  const homeSec = document.getElementById('home');
+  const reelSec = document.getElementById('reel');
+
+  let activeIndex = 0;
+  let autoplay = null;
+
+  function init(){
+    cameras.forEach((c,i) => {
+      const img = document.createElement('img');
+      img.src = camPath(c);
+      img.alt = c.name;
+      img.dataset.i = i;
+      stage.appendChild(img);
+    });
+
+    cameras.forEach((c,i) => {
+      const wrap = document.createElement('div');
+      const t = document.createElement('div');
+      t.className = 'thumb';
+      t.dataset.i = i;
+      const img = document.createElement('img');
+      img.src = camPath(c);
+      img.alt = c.name;
+      t.appendChild(img);
+      t.addEventListener('click', () => selectCamera(i, true));
+      wrap.appendChild(t);
+      const label = document.createElement('div');
+      label.className = 'thumb-label';
+      label.textContent = c.name;
+      wrap.appendChild(label);
+      thumbsEl.appendChild(wrap);
+    });
+
+    selectCamera(0, false);
+    restartAutoplay(true);
+    stage.addEventListener('mouseenter', () => restartAutoplay(false));
+    stage.addEventListener('mouseleave', () => restartAutoplay(true));
+
+    document.getElementById('prevCam').addEventListener('click', () => {
+      selectCamera((activeIndex-1+cameras.length) % cameras.length, false);
+      restartAutoplay(false);
+    });
+    document.getElementById('nextCam').addEventListener('click', () => {
+      selectCamera((activeIndex+1) % cameras.length, false);
+      restartAutoplay(false);
+    });
+
+    // fetch roll-readiness in the background — camera carousel above doesn't wait on this
+    refreshRollStatus();
+
+    const m = window.location.hash.match(/^#\/roll\/(.+)$/);
+    if (m) openReelBySlug(m[1]);
+  }
+
+  async function fetchRollData(slug){
+    try {
+      const res = await fetch(`assets/rolls/${slug}/latest.json`, {cache:'no-store'});
+      if (!res.ok) return null;
+      return await res.json();
+    } catch(e){ return null; }
+  }
+
+  async function refreshRollStatus(){
+    await Promise.all(cameras.map(async (c) => {
+      c.rollData = await fetchRollData(c.slug);
+    }));
+    selectCamera(activeIndex, false); // refresh button state for whatever's currently shown
+  }
+
+  function selectCamera(i, userClicked){
+    activeIndex = i;
+    const c = cameras[i];
+    [...stage.querySelectorAll('img')].forEach((img,idx) => img.classList.toggle('active', idx===i));
+    [...thumbsEl.querySelectorAll('.thumb')].forEach((t,idx) => t.classList.toggle('active', idx===i));
+    camName.textContent = c.name;
+    camMeta.textContent = c.meta;
+    const ready = !!c.rollData;
+    developBtn.classList.toggle('ready', ready);
+    developBtn.textContent = ready ? 'develop this roll' : (c.rollData === undefined ? 'checking…' : 'no roll loaded');
+    notReadyNote.classList.remove('show');
+    if (userClicked && ready) openReelBySlug(c.slug, c.rollData);
+    if (userClicked && c.rollData === null) flashNotReady();
+    if (userClicked) restartAutoplay(false);
+  }
+
+  function flashNotReady(){
+    notReadyNote.textContent = "this roll hasn't come back from the lab yet";
+    notReadyNote.classList.add('show');
+    developBtn.classList.add('shake');
+    setTimeout(()=>developBtn.classList.remove('shake'), 400);
+  }
+
+  developBtn.addEventListener('click', () => {
+    const c = cameras[activeIndex];
+    if (c.rollData) openReelBySlug(c.slug, c.rollData); else flashNotReady();
+  });
+
+  function restartAutoplay(start){
+    if (autoplay) clearInterval(autoplay);
+    if (start && cameras.length){
+      autoplay = setInterval(() => {
+        selectCamera((activeIndex+1) % cameras.length, false);
+      }, 3200);
+    }
+  }
+
+  // ---------- film reel ----------
+  const filmstripEl = document.getElementById('filmstrip');
+  const reelTitleEl = document.querySelector('.reel-title');
+
+  async function openReelBySlug(slug, preloadedData){
+    const data = preloadedData || await fetchRollData(slug);
+    if (!data) return;
+    const date = data.date;
+
+    currentRollFrames = data.frames.map(f => ({
+      thumb: `assets/rolls/${slug}/${date}/thumbs/${f.file}`,
+      full: `assets/rolls/${slug}/${date}/full/${f.file}`,
+      index: f.index
+    }));
+
+    reelTitleEl.textContent = data.label || slug;
+    document.getElementById('frameCount').textContent = currentRollFrames.length;
+
+    filmstripEl.innerHTML = '';
+    currentRollFrames.forEach((f, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'frame';
+      const img = document.createElement('img');
+      img.src = f.thumb;
+      img.alt = 'frame ' + f.index;
+      img.loading = 'lazy';
+      const num = document.createElement('div');
+      num.className = 'frame-num';
+      num.textContent = String(f.index).padStart(2,'0');
+      cell.appendChild(img);
+      cell.appendChild(num);
+      cell.addEventListener('click', () => openLightbox(i));
+      filmstripEl.appendChild(cell);
+    });
+
+    homeSec.classList.add('hidden');
+    reelSec.classList.add('visible');
+    restartAutoplay(false);
+    window.location.hash = `#/roll/${slug}`;
+    window.scrollTo(0,0);
+  }
+
+  function closeReel(){
+    reelSec.classList.remove('visible');
+    homeSec.classList.remove('hidden');
+    restartAutoplay(true);
+    window.location.hash = '';
+    window.scrollTo(0,0);
+  }
+  document.getElementById('backBtn').addEventListener('click', closeReel);
+
+  // ---------- lightbox ----------
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lbImg');
+  const lbMeta = document.getElementById('lbMeta');
+  let lbIndex = 0;
+
+  function openLightbox(i){
+    lbIndex = i;
+    updateLightbox();
+    lightbox.classList.add('visible');
+  }
+  function updateLightbox(){
+    const f = currentRollFrames[lbIndex];
+    lbImg.src = f.full;
+    lbImg.alt = 'frame ' + f.index;
+    lbMeta.textContent = `frame ${String(f.index).padStart(2,'0')} of ${currentRollFrames.length}`;
+  }
+  function closeLightbox(){ lightbox.classList.remove('visible'); }
+  document.getElementById('lbClose').addEventListener('click', closeLightbox);
+  document.getElementById('lbPrev').addEventListener('click', () => { lbIndex=(lbIndex-1+currentRollFrames.length)%currentRollFrames.length; updateLightbox(); });
+  document.getElementById('lbNext').addEventListener('click', () => { lbIndex=(lbIndex+1)%currentRollFrames.length; updateLightbox(); });
+  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', (e) => {
+    if (!lightbox.classList.contains('visible')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') { lbIndex=(lbIndex-1+currentRollFrames.length)%currentRollFrames.length; updateLightbox(); }
+    if (e.key === 'ArrowRight') { lbIndex=(lbIndex+1)%currentRollFrames.length; updateLightbox(); }
+  });
+
+  init();
+</script>
+</body>
+</html>

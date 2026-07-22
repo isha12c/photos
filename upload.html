@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload a roll — darkroom</title>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@700;800&family=Space+Mono:wght@400;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --room:#15100c;
+    --room-deep:#0f0a07;
+    --safelight:#c46a3d;
+    --safelight-glow:rgba(196,106,61,0.22);
+    --paper:#ede6d6;
+    --paper-dim:#c9c0ab;
+    --metal:#565c50;
+    --metal-light:#7a8172;
+    --good:#7a9b6e;
+    --bad:#b5564a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{background:var(--room);color:var(--paper);font-family:'Inter',sans-serif;min-height:100vh;}
+  button,input,select{font-family:inherit;}
+
+  header{text-align:center;padding:40px 20px 8px;}
+  .eyebrow{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.18em;color:var(--safelight);text-transform:uppercase;}
+  .eyebrow::before{content:"● ";}
+  h1{font-family:'Big Shoulders Stencil Display',sans-serif;font-weight:700;font-size:clamp(30px,7vw,46px);margin:8px 0;}
+
+  .wrap{max-width:560px;margin:0 auto;padding:0 20px 100px;}
+  .card{
+    border:1px solid rgba(237,230,214,0.14);border-radius:4px;background:rgba(255,255,255,0.02);
+    padding:20px;margin-bottom:20px;
+  }
+  .card h2{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--paper-dim);margin-bottom:14px;}
+  label{display:block;font-size:13px;color:var(--paper-dim);margin:12px 0 6px;}
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=password]{
+    width:100%;padding:10px 12px;background:rgba(0,0,0,0.25);border:1px solid rgba(237,230,214,0.16);
+    border-radius:3px;color:var(--paper);font-size:14px;
+  }
+  input[type=text]:focus, input[type=password]:focus{outline:none;border-color:var(--safelight);}
+  select{
+    width:100%;padding:10px 12px;background:rgba(0,0,0,0.25);border:1px solid rgba(237,230,214,0.16);
+    border-radius:3px;color:var(--paper);font-size:14px;
+  }
+  .hint{font-size:11px;color:var(--metal-light);margin-top:6px;line-height:1.5;}
+  .row{display:flex;gap:10px;}
+  .row > *{flex:1;}
+
+  .btn{
+    padding:12px 22px;background:none;border:1px solid var(--metal-light);color:var(--paper);
+    border-radius:3px;cursor:pointer;font-size:14px;letter-spacing:0.02em;width:100%;
+    transition:border-color .3s, background .3s;
+  }
+  .btn:hover{border-color:var(--safelight);}
+  .btn.primary{border-color:var(--safelight);}
+  .btn.primary:hover{background:var(--safelight);}
+  .btn:disabled{opacity:0.35;cursor:default;}
+
+  .filepick{
+    border:1px dashed rgba(237,230,214,0.25);border-radius:4px;padding:28px 16px;text-align:center;
+    cursor:pointer;font-size:14px;color:var(--paper-dim);
+  }
+  .filepick:hover{border-color:var(--safelight);}
+  input[type=file]{display:none;}
+
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:14px;}
+  .tcell{position:relative;aspect-ratio:1/1;border-radius:3px;overflow:hidden;background:var(--room-deep);cursor:pointer;border:1px solid rgba(237,230,214,0.1);}
+  .tcell img{width:100%;height:100%;object-fit:cover;transition:transform .2s ease;}
+  .tcell .badge{position:absolute;bottom:3px;right:3px;font-family:'Space Mono',monospace;font-size:9px;background:rgba(0,0,0,.7);color:var(--safelight);padding:1px 4px;border-radius:2px;}
+
+  .status-line{font-family:'Space Mono',monospace;font-size:12px;color:var(--paper-dim);margin-top:12px;min-height:16px;}
+  .status-line.ok{color:var(--good);}
+  .status-line.err{color:var(--bad);}
+  progress{width:100%;height:6px;margin-top:10px;accent-color:var(--safelight);}
+
+  .result-link{
+    display:block;text-align:center;margin-top:14px;padding:12px;border:1px solid var(--good);
+    border-radius:3px;color:var(--good);text-decoration:none;font-family:'Space Mono',monospace;font-size:13px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">intake</div>
+  <h1>upload a roll</h1>
+</header>
+
+<div class="wrap">
+
+  <div class="card" id="connectCard">
+    <h2>connect to github</h2>
+    <label for="ghToken">personal access token</label>
+    <input type="password" id="ghToken" placeholder="github_pat_...">
+    <div class="hint">Fine-grained token, scoped to just this repo, with "Contents: read and write" permission. Stored only in this browser — never sent anywhere but api.github.com.</div>
+    <div class="row" style="margin-top:12px;">
+      <div>
+        <label for="ghOwner">github username</label>
+        <input type="text" id="ghOwner" placeholder="yourusername">
+      </div>
+      <div>
+        <label for="ghRepo">repo name</label>
+        <input type="text" id="ghRepo" placeholder="darkroom">
+      </div>
+    </div>
+    <button class="btn primary" id="connectBtn" style="margin-top:16px;">connect</button>
+    <div class="status-line" id="connectStatus"></div>
+  </div>
+
+  <div class="card" id="rollCard" style="display:none;">
+    <h2>which camera</h2>
+    <select id="cameraSelect"></select>
+    <div class="hint" id="cameraHint" style="margin-top:8px;"></div>
+    <label for="rollSlug" style="margin-top:16px;">roll date</label>
+    <input type="text" id="rollSlug" placeholder="e.g. 7_17_27">
+    <div class="hint">Becomes this camera's roll folder for today. Defaults to today's date — change it if you're uploading more than one roll for this camera on the same day.</div>
+  </div>
+
+  <div class="card" id="picksCard" style="display:none;">
+    <h2>choose photos</h2>
+    <div class="filepick" id="filepick">tap to choose photos from your camera roll</div>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+    <div class="hint">Tap any thumbnail below to rotate it 90° before uploading, if it's sideways.</div>
+    <div class="thumbs" id="thumbs"></div>
+  </div>
+
+  <div class="card" id="uploadCard" style="display:none;">
+    <h2>upload</h2>
+    <button class="btn primary" id="uploadBtn">upload roll to github</button>
+    <progress id="progressBar" value="0" max="1" style="display:none;"></progress>
+    <div class="status-line" id="uploadStatus"></div>
+    <a class="result-link" id="resultLink" style="display:none;" target="_blank">view live site →</a>
+  </div>
+
+</div>
+
+<script>
+  const el = id => document.getElementById(id);
+  const connectStatus = el('connectStatus');
+  const uploadStatus = el('uploadStatus');
+
+  let gh = { token:'', owner:'', repo:'' };
+  let manifest = null;
+  let picks = []; // { file, rotation, name }
+
+  // ---- restore saved connection ----
+  try {
+    const saved = JSON.parse(localStorage.getItem('darkroom_gh') || 'null');
+    if (saved){
+      el('ghToken').value = saved.token || '';
+      el('ghOwner').value = saved.owner || '';
+      el('ghRepo').value = saved.repo || '';
+    }
+  } catch(e){}
+
+  function ghHeaders(){
+    return {
+      'Authorization': `Bearer ${gh.token}`,
+      'Accept': 'application/vnd.github+json'
+    };
+  }
+
+  async function ghGetFile(path){
+    const url = `https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/${path}`;
+    const res = await fetch(url, { headers: ghHeaders() });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`);
+    const data = await res.json();
+    const content = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+    return { sha: data.sha, json: JSON.parse(content) };
+  }
+
+  async function ghPutFile(path, base64Content, message, sha){
+    const url = `https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/${path}`;
+    const body = { message, content: base64Content };
+    if (sha) body.sha = sha;
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok){
+      const t = await res.text();
+      throw new Error(`PUT ${path} failed: ${res.status} ${t}`);
+    }
+    return res.json();
+  }
+
+  function utf8ToBase64(str){
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  function blobToBase64(blob){
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result.split(',')[1]);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+  }
+
+  // ---- connect ----
+  el('connectBtn').addEventListener('click', async () => {
+    gh.token = el('ghToken').value.trim();
+    gh.owner = el('ghOwner').value.trim();
+    gh.repo = el('ghRepo').value.trim();
+    if (!gh.token || !gh.owner || !gh.repo){
+      connectStatus.textContent = 'fill in all three fields';
+      connectStatus.className = 'status-line err';
+      return;
+    }
+    connectStatus.textContent = 'connecting…';
+    connectStatus.className = 'status-line';
+    try {
+      const m = await ghGetFile('assets/manifest.json');
+      if (!m) throw new Error('assets/manifest.json not found in this repo — push the site first');
+      manifest = m;
+      localStorage.setItem('darkroom_gh', JSON.stringify(gh));
+      connectStatus.textContent = `connected — ${manifest.json.cameras.length} cameras found`;
+      connectStatus.className = 'status-line ok';
+      populateCameras();
+      el('rollCard').style.display = 'block';
+      el('picksCard').style.display = 'block';
+      el('uploadCard').style.display = 'block';
+      const d = new Date();
+      el('rollSlug').value = `${d.getMonth()+1}_${d.getDate()}_${String(d.getFullYear()).slice(2)}`;
+    } catch(e){
+      connectStatus.textContent = e.message;
+      connectStatus.className = 'status-line err';
+    }
+  });
+
+  function populateCameras(){
+    const sel = el('cameraSelect');
+    sel.innerHTML = '';
+    manifest.json.cameras.forEach((c,i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = c.name;
+      sel.appendChild(opt);
+    });
+    el('cameraHint').textContent = "Uploading writes a new dated roll for this camera and makes it the active one shown on the site. Older rolls stay in the repo untouched.";
+  }
+
+  // ---- file picking ----
+  el('filepick').addEventListener('click', () => el('fileInput').click());
+  el('fileInput').addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    for (const file of files){
+      picks.push({ file, rotation: 0 });
+    }
+    renderThumbs();
+  });
+
+  function renderThumbs(){
+    const wrap = el('thumbs');
+    wrap.innerHTML = '';
+    picks.forEach((p, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'tcell';
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(p.file);
+      img.style.transform = `rotate(${p.rotation}deg)`;
+      const badge = document.createElement('div');
+      badge.className = 'badge';
+      badge.textContent = p.rotation + '°';
+      cell.appendChild(img);
+      cell.appendChild(badge);
+      cell.addEventListener('click', () => {
+        p.rotation = (p.rotation + 90) % 360;
+        img.style.transform = `rotate(${p.rotation}deg)`;
+        badge.textContent = p.rotation + '°';
+      });
+      wrap.appendChild(cell);
+    });
+  }
+
+  // ---- image processing ----
+  async function processImage(pick){
+    const bitmap = await createImageBitmap(pick.file, { imageOrientation: 'from-image' });
+    const extraRad = pick.rotation * Math.PI / 180;
+    const swap = pick.rotation === 90 || pick.rotation === 270;
+    const baseW = bitmap.width, baseH = bitmap.height;
+    const outW = swap ? baseH : baseW;
+    const outH = swap ? baseW : baseH;
+
+    function renderAt(maxDim){
+      const scale = Math.min(1, maxDim / Math.max(outW, outH));
+      const cw = Math.round(outW * scale), ch = Math.round(outH * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = cw; canvas.height = ch;
+      const ctx = canvas.getContext('2d');
+      ctx.translate(cw/2, ch/2);
+      ctx.rotate(extraRad);
+      const drawScale = scale;
+      ctx.drawImage(bitmap, -baseW*drawScale/2, -baseH*drawScale/2, baseW*drawScale, baseH*drawScale);
+      return canvas;
+    }
+
+    const thumbCanvas = renderAt(380);
+    const fullCanvas = renderAt(1600);
+    const thumbBlob = await new Promise(r => thumbCanvas.toBlob(r, 'image/jpeg', 0.8));
+    const fullBlob = await new Promise(r => fullCanvas.toBlob(r, 'image/jpeg', 0.87));
+    return { thumbBlob, fullBlob };
+  }
+
+  // ---- upload ----
+  el('uploadBtn').addEventListener('click', async () => {
+    if (!manifest){ uploadStatus.textContent = 'connect to github first'; uploadStatus.className='status-line err'; return; }
+    if (!picks.length){ uploadStatus.textContent = 'choose some photos first'; uploadStatus.className='status-line err'; return; }
+
+    const camIndex = Number(el('cameraSelect').value);
+    const camera = manifest.json.cameras[camIndex];
+    const date = el('rollSlug').value.trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+    if (!date){ uploadStatus.textContent = 'enter a roll name'; uploadStatus.className='status-line err'; return; }
+
+    el('uploadBtn').disabled = true;
+    const bar = el('progressBar');
+    bar.style.display = 'block';
+    bar.max = picks.length + 1;
+    bar.value = 0;
+
+    try {
+      const frames = [];
+      for (let i = 0; i < picks.length; i++){
+        uploadStatus.textContent = `processing photo ${i+1} of ${picks.length}…`;
+        uploadStatus.className = 'status-line';
+        const { thumbBlob, fullBlob } = await processImage(picks[i]);
+        const fname = `frame_${String(i).padStart(3,'0')}.jpg`;
+
+        uploadStatus.textContent = `uploading photo ${i+1} of ${picks.length}…`;
+        const thumbB64 = await blobToBase64(thumbBlob);
+        const fullB64 = await blobToBase64(fullBlob);
+        await ghPutFile(`assets/rolls/${camera.slug}/${date}/thumbs/${fname}`, thumbB64, `add ${fname} (thumb) to ${camera.slug}/${date}`);
+        await ghPutFile(`assets/rolls/${camera.slug}/${date}/full/${fname}`, fullB64, `add ${fname} (full) to ${camera.slug}/${date}`);
+
+        frames.push({ file: fname, index: i+1 });
+        bar.value = i + 1;
+      }
+
+      uploadStatus.textContent = 'pointing the site at this roll…';
+      const latestData = { date, label: camera.name, frames };
+      const existingLatest = await ghGetFile(`assets/rolls/${camera.slug}/latest.json`).catch(() => null);
+      await ghPutFile(
+        `assets/rolls/${camera.slug}/latest.json`,
+        utf8ToBase64(JSON.stringify(latestData, null, 2)),
+        `set ${camera.slug}'s active roll to ${date}`,
+        existingLatest ? existingLatest.sha : undefined
+      );
+      bar.value = picks.length + 1;
+
+      uploadStatus.textContent = `done — ${frames.length} photos uploaded to ${camera.slug}/${date}`;
+      uploadStatus.className = 'status-line ok';
+      const link = el('resultLink');
+      link.href = `https://${gh.owner}.github.io/${gh.repo}/`;
+      link.textContent = 'view live site →';
+      link.style.display = 'block';
+
+      picks = [];
+      renderThumbs();
+    } catch(e){
+      uploadStatus.textContent = 'error: ' + e.message;
+      uploadStatus.className = 'status-line err';
+    } finally {
+      el('uploadBtn').disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

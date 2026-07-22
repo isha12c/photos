@@ -1,0 +1,5 @@
+{
+  "cameras": [
+    { "slug": "example", "name": "Example Camera", "meta": "replace this entry" }
+  ]
+}
