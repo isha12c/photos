@@ -141,21 +141,23 @@
     border-top:1px solid rgba(0,0,0,0.5);border-bottom:1px solid rgba(0,0,0,0.5);
   }
   .filmstrip{
-    display:flex;gap:2px;overflow-x:auto;padding:0 24px;scroll-snap-type:x proximity;
+    overflow-x:auto;padding:0 24px;scroll-snap-type:x proximity;
     scrollbar-width:thin;scrollbar-color:var(--metal) var(--room-deep);
   }
+  .filmstrip-track{position:relative;display:inline-flex;gap:0;}
+  .strip-sprockets{
+    position:absolute;left:0;right:0;height:15px;z-index:5;pointer-events:none;
+    background-color:#3c2a17;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='16'%3E%3Crect x='9' y='2' width='12' height='12' rx='2.5' fill='black'/%3E%3C/svg%3E");
+    background-repeat:repeat-x;background-size:30px 16px;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.5);
+  }
+  .strip-sprockets.top{top:0;}
+  .strip-sprockets.bottom{bottom:0;}
   .frame{
     flex:0 0 auto;scroll-snap-align:start;cursor:pointer;position:relative;
-    border-left:1px solid rgba(0,0,0,0.6);border-right:1px solid rgba(0,0,0,0.6);
+    border-right:1px solid rgba(0,0,0,0.5);
   }
-  .frame::before, .frame::after{
-    content:'';position:absolute;left:0;right:0;height:15px;z-index:2;pointer-events:none;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='16'%3E%3Crect x='9' y='2' width='12' height='12' rx='2.5' fill='%23050302'/%3E%3C/svg%3E");
-    background-repeat:repeat-x;background-size:30px 16px;
-    background-color:rgba(8,5,3,0.6);
-  }
-  .frame::before{top:0;}
-  .frame::after{bottom:0;}
   .frame img{
     height:320px;width:auto;display:block;filter:brightness(0.9) saturate(0.96);
     transition:filter 0.3s ease, transform 0.3s ease;
@@ -395,6 +397,9 @@
     document.getElementById('frameCount').textContent = currentRollFrames.length;
 
     filmstripEl.innerHTML = '';
+    const track = document.createElement('div');
+    track.className = 'filmstrip-track';
+
     currentRollFrames.forEach((f, i) => {
       const cell = document.createElement('div');
       cell.className = 'frame';
@@ -408,8 +413,17 @@
       cell.appendChild(img);
       cell.appendChild(num);
       cell.addEventListener('click', () => openLightbox(i));
-      filmstripEl.appendChild(cell);
+      track.appendChild(cell);
     });
+
+    const sprocketsTop = document.createElement('div');
+    sprocketsTop.className = 'strip-sprockets top';
+    const sprocketsBottom = document.createElement('div');
+    sprocketsBottom.className = 'strip-sprockets bottom';
+    track.appendChild(sprocketsTop);
+    track.appendChild(sprocketsBottom);
+
+    filmstripEl.appendChild(track);
 
     homeSec.classList.add('hidden');
     reelSec.classList.add('visible');
