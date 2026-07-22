@@ -57,15 +57,18 @@
   .sub{font-family:'Space Mono',monospace;font-size:13px;color:var(--paper-dim);letter-spacing:0.04em;}
 
   .stage-wrap{position:relative;z-index:10;max-width:1100px;margin:0.5vh auto 0;padding:0 24px;text-align:center;}
-  .stage-row{display:flex;align-items:center;justify-content:center;gap:20px;}
+  .stage-row{position:relative;display:flex;justify-content:center;}
   .stage-nav{
-    flex:0 0 auto;background:rgba(10,7,7,0.5);border:1px solid rgba(237,230,214,0.16);color:var(--paper);
-    width:42px;height:42px;border-radius:50%;cursor:pointer;font-size:16px;
+    position:absolute;top:50%;transform:translateY(-50%);z-index:5;
+    background:rgba(10,7,7,0.55);border:1px solid rgba(237,230,214,0.2);color:var(--paper);
+    width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:14px;
     display:flex;align-items:center;justify-content:center;transition:border-color 0.3s ease, background 0.3s ease;
   }
-  .stage-nav:hover{border-color:var(--safelight);background:var(--safelight-glow);}
+  .stage-nav-prev{left:8px;}
+  .stage-nav-next{right:8px;}
+  .stage-nav:hover{border-color:var(--safelight);background:rgba(179,58,46,0.35);}
   .stage{
-    position:relative;width:min(72vw, calc(46vh * 4 / 3));aspect-ratio:4/3;flex:0 0 auto;border:1px solid rgba(237,230,214,0.14);border-radius:2px;
+    position:relative;width:min(85vw, calc(46vh * 4 / 3));aspect-ratio:4/3;border:1px solid rgba(237,230,214,0.14);border-radius:2px;
     overflow:hidden;background:rgba(10,7,7,0.5);backdrop-filter:blur(3px);
   }
   .stage img{
@@ -200,9 +203,9 @@
 
   <div class="stage-wrap">
     <div class="stage-row">
-      <button class="stage-nav" id="prevCam" aria-label="Previous camera">&#10094;</button>
       <div class="stage" id="stage"></div>
-      <button class="stage-nav" id="nextCam" aria-label="Next camera">&#10095;</button>
+      <button class="stage-nav stage-nav-prev" id="prevCam" aria-label="Previous camera">&#10094;</button>
+      <button class="stage-nav stage-nav-next" id="nextCam" aria-label="Next camera">&#10095;</button>
     </div>
     <div class="stage-caption">
       <div class="cam-name" id="camName"></div>
