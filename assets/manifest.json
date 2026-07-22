@@ -5,7 +5,6 @@
     { "slug": "kodak_kc50",     "name": "Kodak Camera 35 KC50","meta": "35mm · fixed focus" },
     { "slug": "kodak_charmera", "name": "Kodak Charmera",      "meta": "compact 35mm" },
     { "slug": "panasonic",      "name": "Panasonic DMC-LS70",  "meta": "digital compact" },
-    { "slug": "disposable",     "name": "Disposable camera",   "meta": "single use · 27 exp" },
-    { "slug": "iphone",         "name": "iPhone 13 Pro Max",   "meta": "digital · always in pocket" }
+    { "slug": "disposable",     "name": "Disposable camera",   "meta": "single use · 27 exp" }
   ]
 }
