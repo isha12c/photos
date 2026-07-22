@@ -101,9 +101,7 @@
     position:relative;z-index:10;max-width:620px;margin:1vh auto 0;padding:0 24px;width:100%;
   }
   .instruction{text-align:center;font-family:'Space Mono',monospace;font-size:10px;color:var(--metal-light);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;}
-  .thumbs{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
-  @media (max-width:760px){.thumbs{grid-template-columns:repeat(4,1fr);}}
-  @media (max-width:440px){.thumbs{grid-template-columns:repeat(3,1fr);}}
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fit, minmax(64px, 1fr));justify-content:center;gap:8px;}
 
   .thumb{
     border:1px solid rgba(237,230,214,0.12);border-radius:2px;overflow:hidden;cursor:pointer;
